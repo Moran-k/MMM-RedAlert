@@ -1,0 +1,182 @@
+/**
+ * MMM-RedAlert — Styles
+ *
+ * Full-screen alert overlay that sits above all other MagicMirror modules.
+ * Uses RTL (right-to-left) text direction for Hebrew.
+ */
+
+/* ── Wrapper — always present in DOM, hidden when no alert ─────────────────── */
+
+.red-alert-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;           /* don't block touch events on the mirror */
+  direction: rtl;                 /* Hebrew is right-to-left */
+  font-family: "Arial", "Helvetica Neue", "DejaVu Sans", sans-serif;
+  box-sizing: border-box;
+  padding: 40px;
+  opacity: 1;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.red-alert-wrapper.hidden {
+  opacity: 0;
+  pointer-events: none;
+  /* Keep in DOM but invisible so transition works */
+}
+
+/* ── Active alert state ────────────────────────────────────────────────────── */
+
+.red-alert-active {
+  background: rgba(160, 0, 0, 0.88);
+  animation: pulse-bg 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-bg {
+  0%,  100% { background: rgba(160, 0, 0, 0.88); }
+  50%        { background: rgba(210, 10, 10, 0.95); }
+}
+
+/* ── Entry animation ───────────────────────────────────────────────────────── */
+
+.red-alert-animate-in {
+  animation:
+    slide-in  0.5s ease-out forwards,
+    pulse-bg  1.4s ease-in-out 0.5s infinite;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Header row (icon + title) ─────────────────────────────────────────────── */
+
+.red-alert-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.red-alert-icon {
+  font-size: 4em;
+  animation: icon-pulse 0.9s ease-in-out infinite alternate;
+  line-height: 1;
+}
+
+@keyframes icon-pulse {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(1.15); opacity: 0.85; }
+}
+
+.red-alert-title {
+  font-size: 4.5em;
+  font-weight: 900;
+  color: #FFFFFF;
+  text-shadow:
+    0 0 25px rgba(255, 80, 80, 0.9),
+    0 2px 6px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
+/* ── Alert type description (from Pikud HaOref) ────────────────────────────── */
+
+.red-alert-description {
+  font-size: 2.2em;
+  font-weight: 700;
+  color: #FFD700;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* ── Affected locations ────────────────────────────────────────────────────── */
+
+.red-alert-locations-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  max-width: 85vw;
+}
+
+.red-alert-locations-label {
+  font-size: 1.3em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.red-alert-locations {
+  font-size: 1.6em;
+  color: #FFFFFF;
+  text-align: center;
+  line-height: 1.7;
+  font-weight: 500;
+}
+
+.red-alert-more {
+  color: rgba(255, 255, 200, 0.85);
+  font-style: italic;
+}
+
+/* ── Safety instructions ───────────────────────────────────────────────────── */
+
+.red-alert-instructions {
+  font-size: 1.8em;
+  font-weight: 600;
+  color: #FFEEEE;
+  text-align: center;
+  padding: 14px 30px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  max-width: 70vw;
+  margin-top: 10px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Countdown progress bar ────────────────────────────────────────────────── */
+
+.red-alert-progress-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.red-alert-progress-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #FF8080, #FFD700);
+  transform-origin: left center;
+  animation: drain linear forwards;
+  /* duration is set inline via JavaScript from displayDuration */
+  animation-duration: 90000ms;
+}
+
+@keyframes drain {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}

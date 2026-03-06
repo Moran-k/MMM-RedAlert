@@ -1,0 +1,23 @@
+{
+  "name": "mmm-redalert",
+  "version": "1.0.0",
+  "description": "MagicMirror² module for Israeli missile alerts (Tzeva Adom / צבע אדום) via Pikud HaOref",
+  "main": "node_helper.js",
+  "keywords": [
+    "MagicMirror",
+    "MagicMirror2",
+    "module",
+    "Israel",
+    "red alert",
+    "Tzeva Adom",
+    "Pikud HaOref",
+    "missile alert",
+    "רקטות"
+  ],
+  "author": "Moran Kalmanovich",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {}
+}
