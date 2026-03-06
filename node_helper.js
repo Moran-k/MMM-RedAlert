@@ -33,6 +33,7 @@ module.exports = NodeHelper.create({
   pollTimer: null,
   lastAlertId: null,
   isRunning: false,
+  pollCount: 0,
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -60,6 +61,9 @@ module.exports = NodeHelper.create({
         `poll interval: ${this.config.pollInterval}ms`
       );
       this.sendSocketNotification("MONITORING_STARTED", {});
+      if (this.config.debug) {
+        console.log("[MMM-RedAlert] Debug mode ON — heartbeat logged every 30 polls (~60s). Watch pm2 logs for output.");
+      }
       this.poll();  // immediate first poll
       this.pollTimer = setInterval(() => this.poll(), this.config.pollInterval);
     }
@@ -81,7 +85,12 @@ module.exports = NodeHelper.create({
 
       // Pikud HaOref returns empty string, null, or empty object when no alerts
       if (!alertData || !alertData.data || alertData.data.length === 0) {
-        // No active alert — nothing to do
+        // Log a heartbeat every 30 polls (~60s at default interval) so debug mode
+        // produces visible output even when it's quiet
+        this.pollCount++;
+        if (this.config.debug && this.pollCount % 30 === 0) {
+          console.log(`[MMM-RedAlert] ✓ Polling — quiet (${this.pollCount} polls completed, API reachable)`);
+        }
         return;
       }
 
@@ -128,9 +137,8 @@ module.exports = NodeHelper.create({
       });
 
     } catch (err) {
-      if (this.config && this.config.debug) {
-        console.error(`[MMM-RedAlert] Poll error: ${err.message}`);
-      }
+      // Always log errors — a broken API should never be silent
+      console.error(`[MMM-RedAlert] Poll error: ${err.message}`);
       this.sendSocketNotification("POLL_ERROR", err.message);
     }
   },
