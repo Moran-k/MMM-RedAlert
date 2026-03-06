@@ -151,6 +151,7 @@ module.exports = NodeHelper.create({
         hostname: OREF_API_HOST,
         path: OREF_API_PATH,
         method: "GET",
+        family: 4,  // force IPv4 — Pi 3 tries IPv6 first which times out
         headers: {
           "Referer": OREF_API_REFERER,
           "X-Requested-With": "XMLHttpRequest",
