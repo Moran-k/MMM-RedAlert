@@ -21,7 +21,8 @@ const https = require("https");
 const OREF_API_HOST = "www.oref.org.il";
 const OREF_API_PATH = "/WarningMessages/alert/alerts.json";
 const OREF_API_REFERER = "https://www.oref.org.il/";
-const REQUEST_TIMEOUT_MS = 5000;
+// 8s timeout — DNS resolution alone can take ~4s on the Pi, so 5s was too tight.
+const REQUEST_TIMEOUT_MS = 8000;
 
 // ─── Module ───────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,8 @@ module.exports = NodeHelper.create({
   lastAlertId: null,
   isRunning: false,
   pollCount: 0,
+  isPollInProgress: false,  // guard: skip tick if previous request still in flight
+  consecutiveErrors: 0,     // for backoff log rate-limiting
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -80,8 +83,21 @@ module.exports = NodeHelper.create({
   },
 
   async poll() {
+    // Skip this tick if the previous request is still in flight.
+    // Prevents connection pile-up when the API is slow or unreachable.
+    if (this.isPollInProgress) {
+      return;
+    }
+
+    this.isPollInProgress = true;
     try {
       const alertData = await this.fetchOrefAlert();
+
+      // Successful response — reset error counter and log recovery if needed
+      if (this.consecutiveErrors > 0) {
+        console.log(`[MMM-RedAlert] API reachable again after ${this.consecutiveErrors} consecutive errors`);
+        this.consecutiveErrors = 0;
+      }
 
       // Pikud HaOref returns empty string, null, or empty object when no alerts
       if (!alertData || !alertData.data || alertData.data.length === 0) {
@@ -137,9 +153,14 @@ module.exports = NodeHelper.create({
       });
 
     } catch (err) {
-      // Always log errors — a broken API should never be silent
-      console.error(`[MMM-RedAlert] Poll error: ${err.message}`);
+      this.consecutiveErrors++;
+      // Log first error immediately, then every 30th — avoids flooding PM2 logs during outages
+      if (this.consecutiveErrors === 1 || this.consecutiveErrors % 30 === 0) {
+        console.error(`[MMM-RedAlert] Poll error (${this.consecutiveErrors} consecutive): ${err.message}`);
+      }
       this.sendSocketNotification("POLL_ERROR", err.message);
+    } finally {
+      this.isPollInProgress = false;
     }
   },
 
@@ -171,7 +192,7 @@ module.exports = NodeHelper.create({
 
           // Quiet state: API returns empty string or just whitespace
           if (!trimmed || trimmed === "\ufeff") {
-            resolve(null);
+            _resolve(null);
             return;
           }
 
@@ -182,22 +203,29 @@ module.exports = NodeHelper.create({
 
             // API may return {} when quiet
             if (!parsed || typeof parsed !== "object" || !parsed.data) {
-              resolve(null);
+              _resolve(null);
             } else {
-              resolve(parsed);
+              _resolve(parsed);
             }
           } catch (parseErr) {
             // Not valid JSON — treat as no alert
-            resolve(null);
+            _resolve(null);
           }
         });
       });
 
-      req.on("error", reject);
+      // Guard against double-resolve/reject (e.g. timeout fires then error event)
+      let settled = false;
+      const _resolve = (v) => { if (!settled) { settled = true; resolve(v); } };
+      const _reject  = (e) => { if (!settled) { settled = true; reject(e);  } };
 
-      // Hard timeout — don't let a slow response hold up the next poll cycle
+      req.on("error", _reject);
+
+      // Hard timeout — don't let a slow response hold up the next poll cycle.
+      // Note: DNS resolution on the Pi can take ~4s, so 8s gives enough headroom.
       req.setTimeout(REQUEST_TIMEOUT_MS, () => {
-        req.destroy(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`));
+        req.destroy();
+        _reject(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`));
       });
 
       req.end();
