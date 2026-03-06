@@ -8,6 +8,20 @@ When an alert is issued for your configured location, the module displays a prom
 
 ---
 
+## ⚠️ Important Disclaimer
+
+**This module is provided for informational and convenience purposes only.**
+
+- **Do NOT rely on this module as your primary or sole source of emergency alerts.** Always keep the official [Red Alert (Tzofar)](https://www.tzevaadom.co.il/en/) app installed and enabled on your mobile device.
+- This module depends on network connectivity, the availability of the Pikud HaOref API, and correct functioning of your Raspberry Pi. Any of these can fail silently.
+- Alerts may be delayed, missed, or filtered out due to misconfiguration, network issues, API changes, or software bugs.
+- **The authors and contributors of this module accept no responsibility or liability for missed alerts, delayed alerts, or any consequences — including personal injury or property damage — arising from the use or failure of this software.**
+- In an emergency, always follow the instructions of the **Israel Home Front Command (פיקוד העורף)**. Official resources: [oref.org.il](https://www.oref.org.il) | Emergency hotline: **104**
+
+By installing and using this module, you acknowledge that it is a supplementary display tool and not a life-safety system.
+
+---
+
 ## Features
 
 - Real-time polling of the official Pikud HaOref API (every 2 seconds)
