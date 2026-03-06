@@ -16,6 +16,10 @@
   ],
   "author": "Moran Kalmanovich",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Moran-k/MMM-RedAlert.git"
+  },
   "engines": {
     "node": ">=16.0.0"
   },
