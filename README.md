@@ -4,7 +4,7 @@ A [MagicMirror²](https://magicmirror.builders) module that monitors Israeli mis
 
 When an alert is issued for your configured location, the module displays a prominent full-screen warning overlay on your mirror for **90 seconds** before automatically dismissing.
 
-![Alert example — pulsing red overlay with city names and safety instructions]
+![Alert example — pulsing red overlay with city names and safety instructions](preview.png)
 
 ---
 
