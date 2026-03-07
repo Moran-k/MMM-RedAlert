@@ -33,6 +33,7 @@ module.exports = NodeHelper.create({
   config: null,
   pollTimer: null,
   lastAlertId: null,
+  lastAlertSentAt: 0,       // timestamp of last alert sent to frontend
   isRunning: false,
   pollCount: 0,
   isPollInProgress: false,  // guard: skip tick if previous request still in flight
@@ -130,11 +131,20 @@ module.exports = NodeHelper.create({
         return;
       }
 
-      // ── Deduplication — skip if same alert ID already sent ──
+      // ── Deduplication ──
+      // The oref API sometimes changes the alert ID mid-event (e.g. when the
+      // city list is updated), so ID-only dedup isn't enough.
+      // Also suppress re-firing while the previous alert is still on screen.
+      const now = Date.now();
+      const cooldown = this.config.displayDuration || 90000;
       if (alertData.id && alertData.id === this.lastAlertId) {
         return;
       }
-      this.lastAlertId = alertData.id || String(Date.now());
+      if (now - this.lastAlertSentAt < cooldown) {
+        return;
+      }
+      this.lastAlertId = alertData.id || String(now);
+      this.lastAlertSentAt = now;
 
       console.log(
         `[MMM-RedAlert] 🚨 Alert! Category: ${alertData.cat} | ` +
