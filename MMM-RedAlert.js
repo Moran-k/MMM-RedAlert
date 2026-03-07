@@ -19,8 +19,8 @@ Module.register("MMM-RedAlert", {
 
     // Alert categories to monitor (empty array = all categories).
     // 1=missiles/rockets, 2=hostile aircraft, 3=earthquake,
-    // 4=tsunami, 5=radiological, 6=terrorist infiltration, 7=hazmat, 13=unconventional missile
-    categories: [1, 2, 6, 13],
+    // 4=tsunami, 5=radiological, 6=terrorist infiltration, 7=hazmat, 10=news flash, 13=unconventional missile
+    categories: [1, 2, 6, 10, 13],
 
     // Polling interval in milliseconds (recommended: 2000–3000)
     pollInterval: 2000,

@@ -67,7 +67,7 @@ Add a block like this to your `config/config.js`:
   position: "fullscreen_above",
   config: {
     locations: ["אשדוד", "קריית גת"],
-    categories: [1, 2, 6, 13],
+    categories: [1, 2, 6, 10, 13],
     pollInterval: 2000,
     displayDuration: 90000,
   }
@@ -99,6 +99,7 @@ Add a block like this to your `config/config.js`:
 | `5` | Radiological event |
 | `6` | Terrorist infiltration |
 | `7` | Hazardous materials |
+| `10` | News flash |
 | `13` | Non-conventional missile |
 
 ---
