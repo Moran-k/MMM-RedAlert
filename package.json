@@ -5,6 +5,7 @@
   "main": "node_helper.js",
   "scripts": {
     "lint": "eslint .",
+    "test": "node --test",
     "prepare": "husky"
   },
   "keywords": [
