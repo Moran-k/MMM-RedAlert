@@ -1,6 +1,6 @@
 {
   "name": "mmm-redalert",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MagicMirror² module for Israeli missile alerts (Tzeva Adom / צבע אדום) via Pikud HaOref",
   "main": "node_helper.js",
   "scripts": {
