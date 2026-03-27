@@ -14,6 +14,7 @@
 "use strict";
 
 const NodeHelper = require("node_helper");
+const { parseOrefResponse, filterByLocation, matchesCategory, shouldSendAlert } = require("./lib/helpers");
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -111,18 +112,15 @@ module.exports = NodeHelper.create({
       }
 
       // ── Filter by category ──
-      if (this.config.categories && this.config.categories.length > 0) {
-        const cat = Number(alertData.cat);
-        if (!this.config.categories.includes(cat)) {
-          if (this.config.debug) {
-            console.log(`[MMM-RedAlert] Ignoring alert — category ${cat} not in watch list`);
-          }
-          return;
+      if (!matchesCategory(alertData.cat, this.config.categories)) {
+        if (this.config.debug) {
+          console.log(`[MMM-RedAlert] Ignoring alert — category ${alertData.cat} not in watch list`);
         }
+        return;
       }
 
       // ── Filter by location ──
-      const matchedCities = this.filterByLocation(alertData.data);
+      const matchedCities = filterByLocation(alertData.data, this.config.locations);
       if (matchedCities.length === 0) {
         if (this.config.debug) {
           console.log(`[MMM-RedAlert] Alert received but no matching locations. Alert cities: [${alertData.data.join(", ")}]`);
@@ -136,10 +134,7 @@ module.exports = NodeHelper.create({
       // Also suppress re-firing while the previous alert is still on screen.
       const now = Date.now();
       const cooldown = this.config.displayDuration || 90000;
-      if (alertData.id && alertData.id === this.lastAlertId) {
-        return;
-      }
-      if (now - this.lastAlertSentAt < cooldown) {
+      if (!shouldSendAlert(alertData.id, this.lastAlertId, this.lastAlertSentAt, cooldown, now)) {
         return;
       }
       this.lastAlertId = alertData.id || String(now);
@@ -192,45 +187,6 @@ module.exports = NodeHelper.create({
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
-    const text = await response.text();
-    const trimmed = text.trim();
-
-    // Quiet state: API returns empty string or just whitespace/BOM
-    if (!trimmed || trimmed === "\ufeff") return null;
-
-    try {
-      // Strip optional BOM (the API sometimes includes one)
-      const parsed = JSON.parse(trimmed.replace(/^\uFEFF/, ""));
-      // API may return {} when quiet
-      return parsed?.data ? parsed : null;
-    } catch {
-      // Not valid JSON — treat as no alert
-      return null;
-    }
-  },
-
-  // ── Location Filtering ─────────────────────────────────────────────────────
-
-  /**
-   * Given the full list of cities in the alert, returns only those
-   * that match the configured locations.
-   *
-   * Matching is bidirectional substring so:
-   *   - config "אשדוד" matches alert city "אשדוד - כל האזורים"
-   *   - config "תל אביב" matches alert city "תל אביב - מרכז העיר"
-   *   - config "*" matches everything
-   */
-  filterByLocation(alertCities) {
-    if (!this.config.locations || this.config.locations.includes("*")) {
-      return alertCities;
-    }
-
-    return alertCities.filter((alertCity) =>
-      this.config.locations.some((configLoc) => {
-        const city = alertCity.trim();
-        const loc = configLoc.trim();
-        return city.includes(loc) || loc.includes(city);
-      })
-    );
+    return parseOrefResponse(await response.text());
   },
 });
