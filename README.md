@@ -57,6 +57,17 @@ Then add the module to your `config/config.js` and restart MagicMirror.
 
 ---
 
+## Update
+
+```bash
+cd ~/MagicMirror/modules/MMM-RedAlert
+git pull
+npm install
+pm2 restart MagicMirror
+```
+
+---
+
 ## Configuration
 
 Add a block like this to your `config/config.js`:
@@ -70,7 +81,7 @@ Add a block like this to your `config/config.js`:
     categories: [1, 2, 6, 10, 13],
     pollInterval: 2000,
     displayDuration: 90000,
-  }
+  },
 }
 ```
 
@@ -114,7 +125,7 @@ Add a block like this to your `config/config.js`:
     locations: ["תל אביב", "רמת גן", "גבעתיים"],
     categories: [1, 2, 13],
     displayDuration: 90000,
-  }
+  },
 }
 ```
 
@@ -127,7 +138,7 @@ Add a block like this to your `config/config.js`:
   config: {
     locations: ["*"],
     categories: [1],
-  }
+  },
 }
 ```
 

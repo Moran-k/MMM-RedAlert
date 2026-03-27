@@ -14,7 +14,6 @@
 "use strict";
 
 const NodeHelper = require("node_helper");
-const https = require("https");
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -164,11 +163,15 @@ module.exports = NodeHelper.create({
 
     } catch (err) {
       this.consecutiveErrors++;
+      // AbortSignal.timeout throws TimeoutError; normalize the message
+      const msg = err.name === "TimeoutError"
+        ? `Request timed out after ${REQUEST_TIMEOUT_MS}ms`
+        : err.message;
       // Log first error immediately, then every 30th — avoids flooding PM2 logs during outages
       if (this.consecutiveErrors === 1 || this.consecutiveErrors % 30 === 0) {
-        console.error(`[MMM-RedAlert] Poll error (${this.consecutiveErrors} consecutive): ${err.message}`);
+        console.error(`[MMM-RedAlert] Poll error (${this.consecutiveErrors} consecutive): ${msg}`);
       }
-      this.sendSocketNotification("POLL_ERROR", err.message);
+      this.sendSocketNotification("POLL_ERROR", msg);
     } finally {
       this.isPollInProgress = false;
     }
@@ -176,70 +179,34 @@ module.exports = NodeHelper.create({
 
   // ── HTTP Request ───────────────────────────────────────────────────────────
 
-  fetchOrefAlert() {
-    return new Promise((resolve, reject) => {
-      const options = {
-        hostname: OREF_API_HOST,
-        path: OREF_API_PATH,
-        method: "GET",
-        family: 4,  // force IPv4 — Pi 3 tries IPv6 first which times out
-        headers: {
-          "Referer": OREF_API_REFERER,
-          "X-Requested-With": "XMLHttpRequest",
-          "User-Agent": "Mozilla/5.0 (compatible; MMM-RedAlert/1.0)",
-          "Accept": "application/json, text/plain, */*",
-        },
-      };
-
-      const req = https.request(options, (res) => {
-        let raw = "";
-
-        res.setEncoding("utf8");
-        res.on("data", (chunk) => { raw += chunk; });
-
-        res.on("end", () => {
-          const trimmed = raw.trim();
-
-          // Quiet state: API returns empty string or just whitespace
-          if (!trimmed || trimmed === "\ufeff") {
-            _resolve(null);
-            return;
-          }
-
-          try {
-            // Strip optional BOM (the API sometimes includes one)
-            const cleaned = trimmed.replace(/^\uFEFF/, "");
-            const parsed = JSON.parse(cleaned);
-
-            // API may return {} when quiet
-            if (!parsed || typeof parsed !== "object" || !parsed.data) {
-              _resolve(null);
-            } else {
-              _resolve(parsed);
-            }
-          } catch (parseErr) {
-            // Not valid JSON — treat as no alert
-            _resolve(null);
-          }
-        });
-      });
-
-      // Guard against double-resolve/reject (e.g. timeout fires then error event)
-      let settled = false;
-      const _resolve = (v) => { if (!settled) { settled = true; resolve(v); } };
-      const _reject  = (e) => { if (!settled) { settled = true; reject(e);  } };
-
-      req.on("error", _reject);
-
-      // Hard timeout — don't let a slow response hold up the next poll cycle.
-      // Note: DNS resolution on the Pi can take ~4s, so 8s gives enough headroom.
-      req.setTimeout(REQUEST_TIMEOUT_MS, () => {
-        req.destroy();
-        _reject(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`));
-      });
-
-      req.end();
+  async fetchOrefAlert() {
+    const response = await fetch(`https://${OREF_API_HOST}${OREF_API_PATH}`, {
+      headers: {
+        "Referer": OREF_API_REFERER,
+        "X-Requested-With": "XMLHttpRequest",
+        "User-Agent": "Mozilla/5.0 (compatible; MMM-RedAlert/1.0)",
+        "Accept": "application/json, text/plain, */*",
+      },
+      // AbortSignal.timeout is available in Node.js 17.3+.
+      // DNS resolution on the Pi can take ~4s, so 8s gives enough headroom.
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
+
+    const text = await response.text();
+    const trimmed = text.trim();
+
+    // Quiet state: API returns empty string or just whitespace/BOM
+    if (!trimmed || trimmed === "\ufeff") return null;
+
+    try {
+      // Strip optional BOM (the API sometimes includes one)
+      const parsed = JSON.parse(trimmed.replace(/^\uFEFF/, ""));
+      // API may return {} when quiet
+      return parsed?.data ? parsed : null;
+    } catch {
+      // Not valid JSON — treat as no alert
+      return null;
+    }
   },
 
   // ── Location Filtering ─────────────────────────────────────────────────────
