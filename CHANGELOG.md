@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replace Node.js `https` module with built-in `fetch` and `AbortSignal.timeout` in `node_helper.js`
+- Bump minimum Node.js requirement to `>=17.3.0` (required for `AbortSignal.timeout`)
+
+### Added
+
+- ESLint flat config (`eslint.config.mjs`) covering Node.js and browser environments
+- `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1)
+- `.github/dependabot.yaml` for monthly npm dependency updates
+- `.gitignore`
+- `## Update` section in README
+- Trailing commas in all README config examples
+
+### Fixed
+
+- `MagicMirror²` typo in `package.json` keywords (was `MagicMirror2`)
+
 ## [1.0.0] - 2025-05-01
 
 ### Added
