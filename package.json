@@ -4,7 +4,8 @@
   "description": "MagicMirror² module for Israeli missile alerts (Tzeva Adom / צבע אדום) via Pikud HaOref",
   "main": "node_helper.js",
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prepare": "husky"
   },
   "keywords": [
     "MagicMirror",
@@ -26,10 +27,14 @@
   "engines": {
     "node": ">=17.3.0"
   },
-  "dependencies": {},
+  "lint-staged": {
+    "*.js": "eslint --fix"
+  },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "eslint": "^9.0.0",
-    "globals": "^15.0.0"
+    "globals": "^15.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2"
   }
 }
