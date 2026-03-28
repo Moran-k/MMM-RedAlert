@@ -4,7 +4,7 @@
   "description": "MagicMirror² module for Israeli missile alerts (Tzeva Adom / צבע אדום) via Pikud HaOref",
   "main": "node_helper.js",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint",
     "test": "node --test",
     "prepare": "husky"
   },
@@ -26,7 +26,7 @@
     "url": "https://github.com/Moran-k/MMM-RedAlert.git"
   },
   "engines": {
-    "node": ">=17.3.0"
+    "node": ">=22.0.0"
   },
   "lint-staged": {
     "*.js": "eslint --fix"

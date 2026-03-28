@@ -39,7 +39,7 @@ By installing and using this module, you acknowledge that it is a supplementary 
 ## Requirements
 
 - MagicMirror² v2.15 or later
-- Node.js v16 or later
+- Node.js v22 or later
 - The Pi / server must be on an **Israeli IP address** — the Pikud HaOref API is geo-restricted to Israel
 
 ---
@@ -82,7 +82,7 @@ Add a block like this to your `config/config.js`:
     pollInterval: 2000,
     displayDuration: 90000,
   },
-}
+},
 ```
 
 ### Config Options
@@ -126,7 +126,7 @@ Add a block like this to your `config/config.js`:
     categories: [1, 2, 13],
     displayDuration: 90000,
   },
-}
+},
 ```
 
 ## Example — All of Israel
@@ -139,7 +139,7 @@ Add a block like this to your `config/config.js`:
     locations: ["*"],
     categories: [1],
   },
-}
+},
 ```
 
 ---
