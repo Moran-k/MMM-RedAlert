@@ -1,7 +1,8 @@
+import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
 import globals from "globals";
 
-export default [
+export default defineConfig([
   js.configs.recommended,
   {
     files: ["node_helper.js", "lib/**/*.js", "test/**/*.js"],
@@ -21,4 +22,4 @@ export default [
       },
     },
   },
-];
+]);
